@@ -3,6 +3,7 @@
 // 1 - Incorrect number of arguments
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "arghandler.h"
 
 void print_usage() {
@@ -25,6 +26,17 @@ struct args arg_handler(int argc, char **argv) {
           print_usage();
           return arg_package;
      }
+     // Make sure the service/hostname is actually given before we start
+     // populating the arg_package.
+     char *service_and_hostname = argv[5];
+     char *colon = strchr(service_and_hostname, ':');
+     if (colon == NULL) {
+          arg_package.valid_args = 0;
+          print_usage();
+          return arg_package;
+     }
+     // We have valid arguments, now loop over argv and set arg_package values
+     // based on what we find.
      arg_package.valid_args = 1;
      const char *options = "-u: -U: -p: -P:";
      int getopt_return;
@@ -49,5 +61,6 @@ struct args arg_handler(int argc, char **argv) {
                     break;
           }
      }
+     int colon_index = (int)colon - service_and_hostname;
      return arg_package;
 }
