@@ -7,3 +7,6 @@ OBJ = typhon.o arghandler.o
 
 typhon: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS)
+
+clean:
+	rm -f *.o typhon
