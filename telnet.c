@@ -133,14 +133,15 @@ int telnet_process(char *username, char *password, int single_user,
                exit(EXIT_FAILURE);
           }
           while ((read = getline(&line_password, &len, fp)) != - 1) {
+               line_password[strlen(line_password)-1] = '\0';
                result = telnet_connect(username, line_password, hostname);
                if (result == 1) {
-                    line_password[strlen(line_password)-1] = '\0';
                     printf("username: %s password: %s MATCH!\n", username,
                     line_password);
                     numSuccess++;
                }
           }
+          fclose(fp);
           return numSuccess;
      }
      if (single_user == 0 && single_password == 1) {
@@ -155,15 +156,54 @@ int telnet_process(char *username, char *password, int single_user,
                exit(EXIT_FAILURE);
           }
           while ((read = getline(&line_username, &len, fp)) != - 1) {
+               line_username[strlen(line_username)-1] = '\0';
                result = telnet_connect(line_username, password, hostname);
                if (result == 1) {
                     // remove newline
-                    line_username[strlen(line_username)-1] = '\0';
                     printf("username: %s password: %s MATCH!\n", line_username,
                     password);
                     numSuccess++;
                }
           }
+          fclose(fp);
+          return numSuccess;
+     }
+     else {
+          FILE *fp_user, *fp_pass;
+          char *line_username, *line_password;
+          size_t len_user = 0;
+          size_t len_pass = 0;
+          ssize_t read_user, read_pass;
+
+          fp_user = fopen(username, "r");
+          if (fp_user == NULL) {
+               perror("open user");
+               exit(EXIT_FAILURE);
+          }
+          while ((read_user = getline(&line_username, &len_user, fp_user))
+               != - 1) {
+                    // remove newline
+                    line_username[strlen(line_username)-1] = '\0';
+                    fp_pass = fopen(password, "r");
+                    if (fp_pass == NULL) {
+                         perror("open pass");
+                         exit(EXIT_FAILURE);
+                    }
+               while ((read_pass = getline(&line_password, &len_pass, fp_pass))
+                    != -1) {
+                         // remove newline
+                         line_password[strlen(line_password)-1] = '\0';
+                         result = telnet_connect(line_username, line_password,
+                              hostname);
+                         if (result == 1) {
+                              printf("username: %s password: %s MATCH!\n",
+                              line_username, line_password);
+                              numSuccess++;
+                         }
+                    }
+                    fclose(fp_pass);
+               }
+          fclose(fp_user);
           return numSuccess;
      }
 }
