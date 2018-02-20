@@ -9,7 +9,7 @@ typedef struct args {
      int single_password;
      char *username;
      char *password;
-     char *service;
-     char *hostname;
+     char service[7];
+     char hostname[101];
 } args_t;
 #endif

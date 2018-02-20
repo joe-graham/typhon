@@ -65,13 +65,13 @@ struct args arg_handler(int argc, char **argv) {
                     break;
           }
      }
-     int colon_index = (int)colon - (int)service_and_hostname;
+     int colon_index = colon - service_and_hostname;
      char service[7];
      memcpy(service, service_and_hostname, colon_index);
      service[7] = '\0'; // Make sure last value is a null byte.
      char *hostname = colon += 3; // Hostname is past the colon and two slashes.
-     arg_package.hostname = hostname;
-     arg_package.service = service;
+     strncpy(arg_package.hostname, hostname, 100);
+     strncpy(arg_package.service, service, 6);
      arg_package.valid_args = 1;
      return arg_package;
 }
