@@ -35,6 +35,12 @@ struct args arg_handler(int argc, char **argv) {
           print_usage();
           return arg_package;
      }
+     // Make sure there are two slashes after the colon.
+     if (colon[1] != 47 || colon[2] != 47) {
+          arg_package.valid_args = 0;
+          print_usage();
+          return arg_package;
+     }
      // We have valid arguments, now loop over argv and set arg_package values
      // based on what we find.
      const char *options = "-u: -U: -p: -P:";
