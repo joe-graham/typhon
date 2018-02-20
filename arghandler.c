@@ -37,7 +37,6 @@ struct args arg_handler(int argc, char **argv) {
      }
      // We have valid arguments, now loop over argv and set arg_package values
      // based on what we find.
-     arg_package.valid_args = 1;
      const char *options = "-u: -U: -p: -P:";
      int getopt_return;
      while ((getopt_return = getopt(argc, argv, options)) != -1) {
@@ -61,6 +60,10 @@ struct args arg_handler(int argc, char **argv) {
                     break;
           }
      }
-     int colon_index = (int)colon - service_and_hostname;
+     int colon_index = (int)colon - (int)service_and_hostname;
+     char service[7];
+     memcpy(service, service_and_hostname, colon_index);
+     service[7] = '\0';
+     arg_package.valid_args = 1;
      return arg_package;
 }
