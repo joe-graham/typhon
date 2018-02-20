@@ -14,7 +14,7 @@ void telnet_connect(char *username, char *password, char *hostname) {
      status = getaddrinfo(hostname, "23", &hints, &servinfo);
 }
 
-void telnet_process(char *username, char *password, int single_user, \
+void telnet_process(char *username, char *password, int single_user, 
      int single_password, char *hostname) {
      if (single_user == 1 && single_password == 1) {
           telnet_connect(username, password, hostname);
