@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <netinet/tcp.h>
+#include <stdlib.h>
 #include "telnet.h"
 
 int telnet_connect(char *username, char *password, char *hostname) {
@@ -88,7 +89,7 @@ int telnet_connect(char *username, char *password, char *hostname) {
      // Check that we don't have another login or password prompt, but
      // instead a last login prompt (standard for success)
      if (strstr(buf, "last login") == NULL &&
-          strstr(buf, "ogin:") != NULL && strstr(buf, "sername:") == NULL) {
+          strstr(buf, "ogin:") != NULL && strstr(buf, "incorrect") == NULL) {
                return 1;
           }
      else { return 0; }
@@ -97,12 +98,34 @@ int telnet_connect(char *username, char *password, char *hostname) {
 int telnet_process(char *username, char *password, int single_user,
      int single_password, char *hostname) {
      int numSuccess = 0;
+     int result;
      if (single_user == 1 && single_password == 1) {
-          int result = telnet_connect(username, password, hostname);
+          result = telnet_connect(username, password, hostname);
           if (result == 1) {
                printf("username: %s password: %s MATCH!\n", username,
                password);
                numSuccess++;
+          }
+          return numSuccess;
+     }
+     if (single_user == 1 && single_password == 0) {
+          FILE *fp;
+          char *line_password;
+          size_t len = 0;
+          ssize_t read;
+
+          fp = fopen(password, "r");
+          if (fp == NULL) {
+               perror("open");
+               exit(EXIT_FAILURE);
+          }
+          while ((read = getline(&line_password, &len, fp)) != - 1) {
+               result = telnet_connect(username, line_password, hostname);
+               if (result == 1) {
+                    printf("username: %s password: %s MATCH!\n", username,
+                    line_password);
+                    numSuccess++;
+               }
           }
           return numSuccess;
      }
