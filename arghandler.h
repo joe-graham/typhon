@@ -10,6 +10,6 @@ typedef struct args {
      char *username;
      char *password;
      char *service;
-     char *host;
+     char *hostname;
 } args_t;
 #endif

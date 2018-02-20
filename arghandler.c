@@ -70,6 +70,8 @@ struct args arg_handler(int argc, char **argv) {
      memcpy(service, service_and_hostname, colon_index);
      service[7] = '\0'; // Make sure last value is a null byte.
      char *hostname = colon += 3; // Hostname is past the colon and two slashes.
+     arg_package.hostname = hostname;
+     arg_package.service = service;
      arg_package.valid_args = 1;
      return arg_package;
 }
