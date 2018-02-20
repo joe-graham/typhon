@@ -14,7 +14,7 @@ int telnet_connect(char *username, char *password, char *hostname) {
      int status;
      struct addrinfo hints;
      struct addrinfo *servinfo;
-     char buf[1025];
+     char *buf = calloc(1025, 1);
      int sock;
      int recvbytes;
      memset(&hints, 0, sizeof(hints));
@@ -44,20 +44,23 @@ int telnet_connect(char *username, char *password, char *hostname) {
           perror("recv");
           return -1;
      }
-     buf[1025] = '\0';
      unsigned char sendbuf[256] = "\xff\xfb\x22"; // will linemode
      send(sock, sendbuf, 3, 0);
      recv(sock, buf, 1024, 0);
+     memset(buf, 0, 1024);
      // won't terminal speed, terminal type, x display, new env option
      memcpy(sendbuf, "\xff\xfc\x18\xff\xfc\x20\xff\xfc\x23\xff\xfc\x27", 12);
      send(sock, sendbuf, 12, 0);
      recv(sock, buf, 1024, 0);
+     memset(buf, 0, 1024);
      // won't echo, negotiate about window size, remote flow control
      // don't status
      memcpy(sendbuf, "\xff\xfc\x01\xff\xfc\x1f\xff\xfe\x05\xff\xfc\x21", 12);
      send(sock, sendbuf, 12, 0);
      recv(sock, buf, 1024, 0);
+     memset(buf, 0, 1024);
      recv(sock, buf, 1024, 0);
+     memset(buf, 0, 1024);
      // send username
      int i;
      for (i=0; i < strlen(username); i++) {
@@ -65,13 +68,17 @@ int telnet_connect(char *username, char *password, char *hostname) {
           memcpy(sendbuf, &toSend, 1);
           send(sock, sendbuf, 1, 0);
           recv(sock, buf, 1, 0);
+          memset(buf, 0, 1024);
      }
      // send new line
      memcpy(sendbuf, "\r", 1);
      send(sock, sendbuf, 1, 0);
      // recv new line, then "Password: "
      recv(sock, buf, 2, 0);
+     memset(buf, 0, 1024);
+     sleep(1);
      recv(sock, buf, 1024, 0);
+     memset(buf, 0, 1024);
      // send password
      for (i=0; i < strlen(password); i++) {
           char toSend = password[i];
@@ -82,6 +89,8 @@ int telnet_connect(char *username, char *password, char *hostname) {
      memcpy(sendbuf, "\r", 1);
      send(sock, sendbuf, 1, 0);
      recv(sock, buf, 2, 0);
+     memset(buf, 0, 1024);
+     sleep(1);
      // now check if this password worked
      recv(sock, buf, 1024, 0);
      // close the socket
@@ -90,9 +99,13 @@ int telnet_connect(char *username, char *password, char *hostname) {
      // instead a last login prompt (standard for success)
      if (strstr(buf, "last login") == NULL &&
           strstr(buf, "ogin:") != NULL && strstr(buf, "incorrect") == NULL) {
+               free(buf);
                return 1;
           }
-     else { return 0; }
+     else {
+          free(buf);
+          return 0;
+     }
 }
 
 int telnet_process(char *username, char *password, int single_user,
@@ -122,8 +135,32 @@ int telnet_process(char *username, char *password, int single_user,
           while ((read = getline(&line_password, &len, fp)) != - 1) {
                result = telnet_connect(username, line_password, hostname);
                if (result == 1) {
+                    line_password[strlen(line_password)-1] = '\0';
                     printf("username: %s password: %s MATCH!\n", username,
                     line_password);
+                    numSuccess++;
+               }
+          }
+          return numSuccess;
+     }
+     if (single_user == 0 && single_password == 1) {
+          FILE *fp;
+          char *line_username;
+          size_t len = 0;
+          ssize_t read;
+
+          fp = fopen(username, "r");
+          if (fp == NULL) {
+               perror("open");
+               exit(EXIT_FAILURE);
+          }
+          while ((read = getline(&line_username, &len, fp)) != - 1) {
+               result = telnet_connect(line_username, password, hostname);
+               if (result == 1) {
+                    // remove newline
+                    line_username[strlen(line_username)-1] = '\0';
+                    printf("username: %s password: %s MATCH!\n", line_username,
+                    password);
                     numSuccess++;
                }
           }
