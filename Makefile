@@ -1,6 +1,6 @@
 CC=gcc
 DEPS = arghandler.h
-OBJ = typhon.o arghandler.o
+OBJ = typhon.o arghandler.o telnet.o
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
