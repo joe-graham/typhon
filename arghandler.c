@@ -1,6 +1,5 @@
 // arghandler.c - Handles command line arguments for Typhon.
-// Return values:
-// 1 - Incorrect number of arguments
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
