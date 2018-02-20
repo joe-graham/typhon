@@ -12,7 +12,6 @@ int main(int argc, char **argv) {
      }
      char *username = arg_package.username;
      char *password = arg_package.password;
-     int test = strncmp(arg_package.service, "telnet", 6);
      if ((strncmp(arg_package.service, "telnet", 6)) == 0) {
           numSuccess = telnet_process(username, password,
                arg_package.single_user, arg_package.single_password,
